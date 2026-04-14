@@ -59,7 +59,7 @@ export default function StudioBarberShop() {
     setErrorMessage('');
 
     try {
-      // 1. Inserir diretamente o agendamento com os dados do cliente
+      // 1. Inserir na tabela do Supabase
       const { data, error } = await supabase
         .from('agendamentos')
         .insert([
@@ -72,18 +72,26 @@ export default function StudioBarberShop() {
           }
         ]);
 
-      if (error) {
-        console.error("Erro ao guardar na BD:", error);
-        throw error;
-      }
+      if (error) throw error;
 
-      // Se sucesso:
+      // 2. Criar a mensagem para o WhatsApp
+      const numeroBarbearia = "5527999890469";
+      const mensagemFixa = `Olá! Gostaria de confirmar meu agendamento no Studio Barber Shop:%0A%0A` +
+                           `*Cliente:* ${reserva.nome}%0A` +
+                           `*Serviço:* ${reserva.servicoNome}%0A` +
+                           `*Data/Hora:* ${reserva.data} às ${reserva.hora}`;
+      
+      const linkWhatsapp = `https://wa.me/${numeroBarbearia}?text=${mensagemFixa}`;
+
+      // 3. Abrir o WhatsApp em uma nova aba
+      window.open(linkWhatsapp, '_blank');
+
+      // 4. Ir para o passo de sucesso no site
       setStep(4); 
       
     } catch (error: any) {
       console.error('Erro no agendamento:', error);
-      // Aqui nós capturamos a mensagem exata do erro do banco de dados e mostramos na tela
-      const mensagemDoBanco = error?.message || 'Ocorreu um erro desconhecido ao guardar o agendamento.';
+      const mensagemDoBanco = error?.message || 'Ocorreu um erro ao guardar o agendamento.';
       setErrorMessage(`Erro do banco: ${mensagemDoBanco}`);
     } finally {
       setIsSubmitting(false);
